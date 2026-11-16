@@ -1,0 +1,75 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+
+/* Botcake Brand Color Theme + Sypher Split-Grid Executive Design System (ui-ux-pro-max)
+   Botcake Primary: Electric Indigo-Blue (#4B55F5) · Soft Tint (#EEF0FF) · Clean White Surface (#FFFFFF) · Mist Frame (#F4F6FB) */
+@theme {
+    --font-sans: 'Plus Jakarta Sans', 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
+    --color-navy: #0F172A;
+    --color-primary: #4B55F5;
+    --color-primary-hover: #3B44E0;
+    --color-primary-light: #6366F1;
+    --color-primary-soft: #EEF0FF;
+    --color-accent: #F59E0B;
+    --color-surface: #F4F6FB;
+    --color-ink: #111827;
+    --color-muted: #525E75;
+    --color-line: #EAECF4;
+    --color-good: #10B981;
+    --color-bad: #EF4444;
+
+    /* Attribution source colours harmonized with Botcake Indigo */
+    --color-src-ai: #4B55F5;
+    --color-src-broadcast: #0EA5E9;
+    --color-src-sequence: #8B5CF6;
+    --color-src-agent: #F59E0B;
+    --color-src-organic: #94A3B8;
+}
+
+@layer base {
+    html { scroll-behavior: smooth; }
+    body { @apply bg-surface text-ink font-sans antialiased selection:bg-primary-soft selection:text-primary; }
+    .num, td, th { font-variant-numeric: tabular-nums; }
+    :focus-visible { @apply outline-none ring-2 ring-primary ring-offset-1; }
+}
+
+@layer components {
+    /* Sypher-style crisp white surfaces with razor-thin hairlines */
+    .card { @apply bg-white rounded-2xl border border-line shadow-[0_1px_2px_rgba(16,24,40,0.03)]; }
+    .card-interactive { @apply bg-white rounded-2xl border border-line shadow-[0_1px_2px_rgba(16,24,40,0.03)] cursor-pointer transition-all duration-200 hover:border-primary/40 hover:shadow-[0_8px_20px_-6px_rgba(75,85,245,0.12)]; }
+    .card-head { @apply flex flex-wrap items-center justify-between gap-3 px-6 pt-5 pb-3.5 border-b border-line; }
+    .card-title { @apply text-[15px] font-semibold text-ink flex items-center gap-2 tracking-tight; }
+    .card-sub { @apply text-xs text-muted; }
+
+    /* Sidebar nav items */
+    .nav-item { @apply flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium text-muted cursor-pointer transition-all duration-150 hover:bg-slate-50 hover:text-ink; }
+    .nav-item-active { @apply flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-semibold bg-primary-soft text-primary cursor-pointer; }
+
+    .pill { @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold whitespace-nowrap; }
+    .btn-primary { @apply inline-flex items-center justify-center gap-1.5 rounded-xl px-3.5 min-h-[36px] text-xs font-semibold cursor-pointer transition-all duration-150 bg-primary text-white shadow-[0_1px_2px_rgba(75,85,245,0.25)] hover:bg-primary-hover active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed; }
+    .btn-ghost { @apply inline-flex items-center justify-center gap-1.5 rounded-xl px-3 min-h-[36px] text-xs font-medium cursor-pointer transition-colors duration-150 border border-line bg-white text-ink hover:bg-slate-50 active:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed; }
+    .field { @apply rounded-xl border border-line bg-white px-3 min-h-[36px] text-xs font-medium text-ink transition-colors duration-150 hover:border-slate-300 focus:border-primary; }
+    .search-field { @apply rounded-xl border border-line bg-slate-50/70 pl-8 pr-3 h-8 text-xs text-ink placeholder:text-slate-400 transition-colors duration-150 focus:bg-white focus:border-primary; }
+
+    /* Clean Sypher-inspired tables */
+    .tbl { @apply w-full text-[13px]; }
+    .tbl thead th { @apply sticky top-0 z-10 bg-white/95 backdrop-blur-xs px-3 py-2.5 text-[11px] font-medium text-muted text-right whitespace-nowrap border-b border-line select-none; }
+    .tbl thead th:first-child { @apply text-left pl-6; }
+    .tbl thead th:last-child { @apply pr-6; }
+    .tbl thead th[data-sort] { @apply cursor-pointer hover:text-ink hover:bg-slate-50 transition-colors duration-150; }
+    .tbl tbody td { @apply px-3 py-2.5 text-right border-b border-line/70 align-middle; }
+    .tbl tbody td:first-child { @apply text-left pl-6; }
+    .tbl tbody td:last-child { @apply pr-6; }
+    .tbl tbody tr { @apply transition-colors duration-150; }
+    .tbl tbody tr:hover { @apply bg-primary-soft/35; }
+    .link-num { @apply inline-flex items-center gap-0.5 font-semibold text-primary hover:text-primary-hover hover:underline cursor-pointer rounded px-1 -mx-1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    * { transition: none !important; animation: none !important; }
+}
