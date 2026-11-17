@@ -47,12 +47,16 @@
                 <input type="hidden" name="role_title" id="pdf-role-title" value="Automation Team Member">
                 <input type="hidden" name="coverage" id="pdf-coverage" value="{{ $defaultCoverage }}">
                 <input type="hidden" name="bc_target" id="pdf-bc-target" value="">
+                <input type="hidden" name="pos_target" id="pdf-pos-target" value="">
+                <input type="hidden" name="ai_target" id="pdf-ai-target" value="">
+                <input type="hidden" name="phones_target" id="pdf-phones-target" value="">
                 <input type="hidden" name="macro_today" id="pdf-macro-today" value="">
                 <input type="hidden" name="macro_target" id="pdf-macro-target" value="">
                 <input type="hidden" name="inq_today" id="pdf-inq-today" value="">
                 <input type="hidden" name="inq_yest" id="pdf-inq-yest" value="">
                 <input type="hidden" name="inq_target" id="pdf-inq-target" value="">
                 <input type="hidden" name="pending_concerns" id="pdf-pending" value="">
+                <input type="hidden" name="pending_target" id="pdf-pending-target" value="">
                 <input type="hidden" name="support_needed" id="pdf-support" value="{{ $defaultSupportNeeded }}">
                 <input type="hidden" name="ceo_decision" id="pdf-ceo" value="Wala.">
                 <input type="hidden" name="prio_1" id="pdf-prio-1" value="{{ $todayStats['bc_failures'] > 0 ? 'Resolve '.$todayStats['bc_failures'].' broadcast delivery issue(s) and verify scheduled sends.' : 'Verify scheduled Utility & Within-window broadcasts across all assigned pages.' }}">
@@ -231,47 +235,64 @@
                     </label>
 
                     <div class="pt-2 border-t border-line space-y-2.5">
-                        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Optional QA & Manual Inbox Counters</div>
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Optional Key Number Targets</div>
 
-                        <div class="grid grid-cols-3 gap-2">
-                            <label class="flex flex-col gap-1">
-                                <span class="text-[10px] text-muted truncate">BC Target (opt)</span>
-                                <input type="number" min="0" id="in-bc-target" value="" placeholder="Optional" class="field !min-h-[32px] num">
-                            </label>
-                            <label class="flex flex-col gap-1">
-                                <span class="text-[10px] text-muted truncate">Bot/Macro Fixed</span>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="flex flex-col gap-1">
+                                <label for="in-bc-target" class="text-[10px] text-muted truncate">Broadcasts Target (opt)</label>
+                                <input type="text" id="in-bc-target" value="" placeholder="e.g. 20" class="field !min-h-[32px] num">
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <label for="in-pos-target" class="text-[10px] text-muted truncate">POS Orders Target (opt)</label>
+                                <input type="text" id="in-pos-target" value="" placeholder="e.g. 50" class="field !min-h-[32px] num">
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <label for="in-ai-target" class="text-[10px] text-muted truncate">Botcake AI Target (opt)</label>
+                                <input type="text" id="in-ai-target" value="" placeholder="e.g. 40" class="field !min-h-[32px] num">
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <label for="in-phones-target" class="text-[10px] text-muted truncate">Phone Leads Target (opt)</label>
+                                <input type="text" id="in-phones-target" value="" placeholder="e.g. 30" class="field !min-h-[32px] num">
+                            </div>
+                        </div>
+
+                        <div class="pt-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">Optional QA &amp; Manual Inbox Counters</div>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="flex flex-col gap-1">
+                                <label for="in-macro-today" class="text-[10px] text-muted truncate">Bot/Macro Issues Fixed</label>
                                 <input type="number" min="0" id="in-macro-today" value="" placeholder="Optional" class="field !min-h-[32px] num">
-                            </label>
-                            <label class="flex flex-col gap-1">
-                                <span class="text-[10px] text-muted truncate">Macro Target</span>
-                                <input type="number" min="0" id="in-macro-target" value="" placeholder="Optional" class="field !min-h-[32px] num">
-                            </label>
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <label for="in-macro-target" class="text-[10px] text-muted truncate">Macro Target</label>
+                                <input type="text" id="in-macro-target" value="" placeholder="e.g. 5" class="field !min-h-[32px] num">
+                            </div>
                         </div>
 
                         <div class="grid grid-cols-3 gap-2">
-                            <label class="flex flex-col gap-1">
-                                <span class="text-[10px] text-muted truncate flex items-center justify-between gap-1">
-                                    <span>Inquiries Assisted</span>
+                            <div class="flex flex-col gap-1">
+                                <div class="text-[10px] text-muted flex items-center justify-between gap-1">
+                                    <label for="in-inq-today" class="truncate">Inquiries Assisted</label>
                                     @php $liveAssisted = max((int) ($inboxCounts['human_assisted'] ?? 0), (int) $detectedManualOrders); @endphp
                                     @if ($liveAssisted > 0)
-                                        <button type="button" data-fill-val="{{ $liveAssisted }}" data-fill-target="in-inq-today" class="text-[9px] text-primary hover:underline cursor-pointer shrink-0">({{ $liveAssisted }} live)</button>
+                                        <button type="button" data-fill-val="{{ $liveAssisted }}" data-fill-target="in-inq-today" class="text-[9px] font-semibold text-primary hover:underline cursor-pointer shrink-0">({{ $liveAssisted }} live)</button>
                                     @endif
-                                </span>
+                                </div>
                                 <input type="number" min="0" id="in-inq-today" value="" placeholder="Optional" class="field !min-h-[32px] num">
-                            </label>
-                            <label class="flex flex-col gap-1">
-                                <span class="text-[10px] text-muted truncate">Inquiries Yest.</span>
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <label for="in-inq-yest" class="text-[10px] text-muted truncate">Inquiries Yest.</label>
                                 <input type="number" min="0" id="in-inq-yest" value="" placeholder="Optional" class="field !min-h-[32px] num">
-                            </label>
-                            <label class="flex flex-col gap-1">
-                                <span class="text-[10px] text-muted truncate">Inquiries Target</span>
-                                <input type="number" min="0" id="in-inq-target" value="" placeholder="Optional" class="field !min-h-[32px] num">
-                            </label>
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <label for="in-inq-target" class="text-[10px] text-muted truncate">Inquiries Target</label>
+                                <input type="text" id="in-inq-target" value="" placeholder="Optional" class="field !min-h-[32px] num">
+                            </div>
                         </div>
 
-                        <label class="flex flex-col gap-1">
-                            <span class="text-[10px] text-muted flex items-center justify-between gap-2">
-                                <span>Pending Customer Concerns <span class="text-slate-400">(optional)</span></span>
+                        <div class="space-y-1">
+                            <div class="text-[10px] text-muted flex flex-wrap items-center justify-between gap-2">
+                                <label for="in-pending">Pending Customer Concerns <span class="text-slate-400">(optional)</span></label>
                                 <span class="inline-flex items-center gap-2">
                                     @if (($inboxCounts['unanswered'] ?? 0) > 0)
                                         <button type="button" data-fill-val="{{ $inboxCounts['unanswered'] }}" data-fill-target="in-pending" class="text-[10px] font-semibold text-bad hover:underline cursor-pointer">
@@ -280,9 +301,12 @@
                                     @endif
                                     <a href="{{ route('inbox') }}" class="text-[10px] font-semibold text-primary hover:underline">See names in Inbox ↗</a>
                                 </span>
-                            </span>
-                            <input type="number" min="0" id="in-pending" value="" placeholder="Leave blank if none" class="field !min-h-[32px] num">
-                        </label>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2">
+                                <input type="number" min="0" id="in-pending" value="" placeholder="Today (opt)" class="col-span-2 field !min-h-[32px] num">
+                                <input type="text" id="in-pending-target" value="" placeholder="Target (e.g. 0)" class="col-span-1 field !min-h-[32px] num">
+                            </div>
+                        </div>
                     </div>
 
                     <div class="pt-2 border-t border-line space-y-2.5">
@@ -393,19 +417,19 @@
                                     <td class="py-2.5 px-4 font-medium text-slate-800">Verified POS Orders (Assigned Pages)</td>
                                     <td class="py-2.5 px-4 text-center font-bold text-[#4B55F5]">{{ kpi_num($todayStats['orders']) }}</td>
                                     <td class="py-2.5 px-4 text-center text-slate-600">{{ kpi_num($yesterdayStats['orders']) }}</td>
-                                    <td class="py-2.5 px-4 text-center text-slate-400">—</td>
+                                    <td id="out-pos-target" class="py-2.5 px-4 text-center text-slate-600">—</td>
                                 </tr>
                                 <tr class="bg-white">
                                     <td class="py-2.5 px-4 font-medium text-slate-800">Botcake AI Orders Closed</td>
                                     <td class="py-2.5 px-4 text-center font-bold text-slate-900">{{ kpi_num($todayStats['ai_orders']) }}</td>
                                     <td class="py-2.5 px-4 text-center text-slate-600">{{ kpi_num($yesterdayStats['ai_orders']) }}</td>
-                                    <td class="py-2.5 px-4 text-center text-slate-400">—</td>
+                                    <td id="out-ai-target" class="py-2.5 px-4 text-center text-slate-600">—</td>
                                 </tr>
                                 <tr class="bg-slate-50/80">
                                     <td class="py-2.5 px-4 font-medium text-slate-800">Phone Leads Captured (Broadcasts)</td>
                                     <td class="py-2.5 px-4 text-center font-bold text-slate-900">{{ kpi_num($todayStats['bc_phones']) }}</td>
                                     <td class="py-2.5 px-4 text-center text-slate-600">{{ kpi_num($yesterdayStats['bc_phones']) }}</td>
-                                    <td class="py-2.5 px-4 text-center text-slate-400">—</td>
+                                    <td id="out-phones-target" class="py-2.5 px-4 text-center text-slate-600">—</td>
                                 </tr>
                                 {{-- Optional Manual Rows (hidden unless user enters a value) --}}
                                 <tr id="row-macro" class="bg-white hidden">
@@ -419,6 +443,12 @@
                                     <td id="out-inq-today" class="py-2.5 px-4 text-center font-bold text-slate-900">0</td>
                                     <td id="out-inq-yest" class="py-2.5 px-4 text-center text-slate-600">—</td>
                                     <td id="out-inq-target" class="py-2.5 px-4 text-center text-slate-600">—</td>
+                                </tr>
+                                <tr id="row-pending" class="bg-white hidden">
+                                    <td class="py-2.5 px-4 font-medium text-slate-800">Pending Customer Concerns</td>
+                                    <td id="out-pending-today" class="py-2.5 px-4 text-center font-bold text-amber-800">0</td>
+                                    <td class="py-2.5 px-4 text-center text-slate-400">—</td>
+                                    <td id="out-pending-target" class="py-2.5 px-4 text-center text-slate-600">0</td>
                                 </tr>
                             </tbody>
                         </table>

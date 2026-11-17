@@ -66,10 +66,6 @@
             @endif
             <span class="text-slate-300">·</span>
             <span>{{ \Illuminate\Support\Carbon::parse($from)->format('M j') }}@if ($from !== $to) – {{ \Illuminate\Support\Carbon::parse($to)->format('M j, Y') }}@else, {{ \Illuminate\Support\Carbon::parse($from)->format('Y') }}@endif</span>
-            @if ($sales['canceled'])
-                <span class="text-slate-300">·</span>
-                <a href="{{ route('orders', $q(['valid' => 0])) }}" class="text-bad hover:underline cursor-pointer">{{ $sales['canceled'] }} canceled excluded</a>
-            @endif
         </div>
         <div class="flex items-center gap-3">
             @if ($lastError)

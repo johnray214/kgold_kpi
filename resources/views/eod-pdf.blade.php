@@ -130,34 +130,42 @@
                 <td>Verified POS Orders (Assigned Pages)</td>
                 <td class="center indigo">{{ kpi_num($todayStats['orders']) }}</td>
                 <td class="center">{{ kpi_num($yesterdayStats['orders']) }}</td>
-                <td class="center muted">—</td>
+                <td class="center {{ ($posTarget ?? '') !== '' ? '' : 'muted' }}">{{ ($posTarget ?? '') !== '' ? $posTarget : '—' }}</td>
             </tr>
             <tr>
                 <td>Botcake AI Orders Closed</td>
                 <td class="center bold">{{ kpi_num($todayStats['ai_orders']) }}</td>
                 <td class="center">{{ kpi_num($yesterdayStats['ai_orders']) }}</td>
-                <td class="center muted">—</td>
+                <td class="center {{ ($aiTarget ?? '') !== '' ? '' : 'muted' }}">{{ ($aiTarget ?? '') !== '' ? $aiTarget : '—' }}</td>
             </tr>
             <tr class="alt">
                 <td>Phone Leads Captured (Broadcasts)</td>
                 <td class="center bold">{{ kpi_num($todayStats['bc_phones']) }}</td>
                 <td class="center">{{ kpi_num($yesterdayStats['bc_phones']) }}</td>
-                <td class="center muted">—</td>
+                <td class="center {{ ($phonesTarget ?? '') !== '' ? '' : 'muted' }}">{{ ($phonesTarget ?? '') !== '' ? $phonesTarget : '—' }}</td>
             </tr>
-            @if ($macroToday !== '')
+            @if ($macroToday !== '' || $macroTarget !== '')
                 <tr>
                     <td>Bot/Macro Issues Resolved</td>
-                    <td class="center bold">{{ $macroToday }}</td>
+                    <td class="center bold">{{ $macroToday !== '' ? $macroToday : '0' }}</td>
                     <td class="center muted">—</td>
                     <td class="center">{{ $macroTarget !== '' ? $macroTarget : '—' }}</td>
                 </tr>
             @endif
-            @if ($inqToday !== '')
+            @if ($inqToday !== '' || $inqYest !== '' || $inqTarget !== '')
                 <tr class="alt">
                     <td>Unanswered Inquiries Assisted</td>
-                    <td class="center bold">{{ $inqToday }}</td>
+                    <td class="center bold">{{ $inqToday !== '' ? $inqToday : '0' }}</td>
                     <td class="center">{{ $inqYest !== '' ? $inqYest : '—' }}</td>
                     <td class="center">{{ $inqTarget !== '' ? $inqTarget : '—' }}</td>
+                </tr>
+            @endif
+            @if ($pendingConcerns !== '' || ($pendingTarget ?? '') !== '')
+                <tr>
+                    <td>Pending Customer Concerns</td>
+                    <td class="center bold">{{ $pendingConcerns !== '' ? $pendingConcerns : '0' }}</td>
+                    <td class="center muted">—</td>
+                    <td class="center">{{ ($pendingTarget ?? '') !== '' ? $pendingTarget : '0' }}</td>
                 </tr>
             @endif
         </tbody>

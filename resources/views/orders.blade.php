@@ -36,7 +36,7 @@
                 <div class="num text-lg font-bold">{{ kpi_num($orders->count()) }}</div>
             </div>
             <div class="card px-4 py-2.5">
-                <div class="text-[11px] font-semibold text-muted uppercase tracking-wider">Valid Revenue</div>
+                <div class="text-[11px] font-semibold text-muted uppercase tracking-wider">Total Revenue</div>
                 <div class="num text-lg font-bold text-good">{{ kpi_peso($validOrders->sum('total')) }}</div>
             </div>
         </div>
@@ -48,7 +48,7 @@
             <div class="flex flex-wrap items-center gap-1.5">
                 <a href="{{ route('orders', $baseQ + ['valid' => 1]) }}"
                    @class(['px-3 py-1 rounded-full text-xs font-semibold border cursor-pointer transition-colors', 'bg-primary text-white border-primary' => !$activeSrc && !$onlyInvalid, 'bg-white text-muted border-line hover:text-ink' => $activeSrc || $onlyInvalid])>
-                    All Valid
+                    All Orders
                 </a>
                 @foreach ($labels as $key => $label)
                     <a href="{{ route('orders', $baseQ + ['source_type' => $key, 'valid' => 1]) }}"
@@ -56,10 +56,6 @@
                         {{ $label }}
                     </a>
                 @endforeach
-                <a href="{{ route('orders', $baseQ + ['valid' => 0]) }}"
-                   @class(['px-3 py-1 rounded-full text-xs font-semibold border cursor-pointer transition-colors', 'bg-bad text-white border-bad' => $onlyInvalid, 'bg-white text-bad border-red-200 hover:bg-red-50' => !$onlyInvalid])>
-                    Canceled
-                </a>
             </div>
 
             <div class="flex items-center gap-2">
@@ -111,7 +107,12 @@
                             <td class="!text-left text-xs text-muted max-w-64 truncate" title="{{ $o->items_summary }}">{{ $o->items_summary }}</td>
                             <td class="font-bold text-good" data-val="{{ $o->total }}">{{ kpi_peso($o->total) }}</td>
                             <td class="!text-left">
-                                <span @class(['pill', 'bg-red-50 text-bad line-through' => ! $o->is_valid, 'bg-slate-100 text-ink' => $o->is_valid])>{{ $o->status_name }}</span>
+                                <span @class([
+                                    'pill',
+                                    'bg-amber-50 text-amber-800 border border-amber-200/70' => (int) $o->status === 6,
+                                    'bg-red-50 text-bad line-through' => ! $o->is_valid,
+                                    'bg-slate-100 text-ink' => $o->is_valid && (int) $o->status !== 6,
+                                ])>{{ $o->status_name }}</span>
                             </td>
                             <td class="!text-left" data-val="{{ $labels[$o->source_type] ?? 'Pending' }}">
                                 <span class="pill {{ $pillCls[$o->source_type] ?? 'bg-slate-100 text-muted' }}">{{ $labels[$o->source_type] ?? 'Pending' }}</span>

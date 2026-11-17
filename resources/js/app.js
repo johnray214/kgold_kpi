@@ -867,9 +867,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const customTbody = document.getElementById('out-custom-sales-tbody');
 
         const memFieldIds = [
-            'in-prep-by', 'in-role-title', 'in-coverage', 'in-bc-target',
+            'in-prep-by', 'in-role-title', 'in-coverage',
+            'in-bc-target', 'in-pos-target', 'in-ai-target', 'in-phones-target',
             'in-macro-today', 'in-macro-target', 'in-inq-today', 'in-inq-yest',
-            'in-inq-target', 'in-pending', 'in-support', 'in-ceo',
+            'in-inq-target', 'in-pending', 'in-pending-target', 'in-support', 'in-ceo',
             'in-prio-1', 'in-prio-2', 'in-prio-3',
         ];
 
@@ -904,12 +905,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const roleTitle = val('in-role-title');
             const coverage = val('in-coverage');
             const bcTarget = val('in-bc-target');
+            const posTarget = val('in-pos-target');
+            const aiTarget = val('in-ai-target');
+            const phonesTarget = val('in-phones-target');
             const macroToday = val('in-macro-today');
             const macroTarget = val('in-macro-target');
             const inqToday = val('in-inq-today');
             const inqYest = val('in-inq-yest');
             const inqTarget = val('in-inq-target');
             const pending = val('in-pending');
+            const pendingTarget = val('in-pending-target');
             const support = val('in-support');
             const ceo = val('in-ceo') || 'Wala.';
             const p1 = val('in-prio-1');
@@ -923,10 +928,14 @@ document.addEventListener('DOMContentLoaded', () => {
             setTxt('out-coverage', coverage);
             setTxt('out-bc-target-1', bcTarget !== '' ? bcTarget : '—');
             setTxt('out-bc-target-2', bcTarget !== '' ? bcTarget : '—');
+            setTxt('out-pos-target', posTarget !== '' ? posTarget : '—');
+            setTxt('out-ai-target', aiTarget !== '' ? aiTarget : '—');
+            setTxt('out-phones-target', phonesTarget !== '' ? phonesTarget : '—');
 
-            // Optional Macro row & bullet
-            document.getElementById('row-macro')?.classList.toggle('hidden', macroToday === '');
-            setTxt('out-macro-today', macroToday || '0');
+            // Optional Macro row & bullet (visible if either Today or Target is entered)
+            const showMacro = macroToday !== '' || macroTarget !== '';
+            document.getElementById('row-macro')?.classList.toggle('hidden', !showMacro);
+            setTxt('out-macro-today', macroToday !== '' ? macroToday : '0');
             setTxt('out-macro-target', macroTarget !== '' ? macroTarget : '—');
             const liMacro = document.getElementById('li-macro-bullet');
             if (liMacro) {
@@ -934,15 +943,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 liMacro.textContent = macroToday !== '' ? `Corrected ${macroToday} identified bot/macro response issue(s).` : '';
             }
 
-            // Optional Unanswered Inquiries row & bullets
-            document.getElementById('row-inq')?.classList.toggle('hidden', inqToday === '');
-            setTxt('out-inq-today', inqToday || '0');
+            // Optional Unanswered Inquiries Assisted row & bullets (visible if Today, Yest, or Target is entered)
+            const showInq = inqToday !== '' || inqYest !== '' || inqTarget !== '';
+            document.getElementById('row-inq')?.classList.toggle('hidden', !showInq);
+            setTxt('out-inq-today', inqToday !== '' ? inqToday : '0');
             setTxt('out-inq-yest', inqYest !== '' ? inqYest : '—');
             setTxt('out-inq-target', inqTarget !== '' ? inqTarget : '—');
             document.getElementById('li-inq-impact')?.classList.toggle('hidden', inqToday === '');
             setTxt('out-inq-impact', inqToday);
 
-            // Optional Pending Customer Concerns
+            // Optional Pending Customer Concerns row & bullets (visible in Key Numbers + Section 2 + Section 3B)
+            const showPending = pending !== '' || pendingTarget !== '';
+            document.getElementById('row-pending')?.classList.toggle('hidden', !showPending);
+            setTxt('out-pending-today', pending !== '' ? pending : '0');
+            setTxt('out-pending-target', pendingTarget !== '' ? pendingTarget : '0');
             document.getElementById('li-pending-impact')?.classList.toggle('hidden', pending === '');
             setTxt('out-pending-impact', pending);
 
@@ -968,12 +982,16 @@ document.addEventListener('DOMContentLoaded', () => {
             setVal('pdf-role-title', roleTitle);
             setVal('pdf-coverage', coverage);
             setVal('pdf-bc-target', bcTarget);
+            setVal('pdf-pos-target', posTarget);
+            setVal('pdf-ai-target', aiTarget);
+            setVal('pdf-phones-target', phonesTarget);
             setVal('pdf-macro-today', macroToday);
             setVal('pdf-macro-target', macroTarget);
             setVal('pdf-inq-today', inqToday);
             setVal('pdf-inq-yest', inqYest);
             setVal('pdf-inq-target', inqTarget);
             setVal('pdf-pending', pending);
+            setVal('pdf-pending-target', pendingTarget);
             setVal('pdf-support', support);
             setVal('pdf-ceo', ceo);
             setVal('pdf-prio-1', p1);
@@ -1069,6 +1087,7 @@ document.addEventListener('DOMContentLoaded', () => {
         memFieldIds.forEach((id) => {
             const el = document.getElementById(id);
             el?.addEventListener('input', syncEodPreview);
+            el?.addEventListener('change', syncEodPreview);
             el?.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') e.preventDefault();
             });
@@ -1076,7 +1095,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('in-show-pages-tbl')?.addEventListener('change', syncEodPreview);
 
         document.querySelectorAll('[data-fill-val]').forEach((btn) => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 const target = document.getElementById(btn.dataset.fillTarget);
                 if (target) {
                     target.value = btn.dataset.fillVal;

@@ -141,12 +141,12 @@ const server = http.createServer((req, res) => {
 
 server.keepAliveTimeout = 65000;
 server.listen({ port: PORT, host: '::', ipv6Only: false }, () => {
-    console.log(`[FastKPI] Dual-stack server listening on http://localhost:${PORT} (4 PHP workers + 30m auto-sync)`);
+    console.log(`[FastKPI] Dual-stack server listening on http://localhost:${PORT} (4 PHP workers + 1h auto-sync)`);
 });
 
-// Built-in 30-minute background KPI sync (single process — no extra scheduler task needed)
+// Built-in 1-hour background KPI sync (single process — no extra scheduler task needed)
 let syncProc = null;
-const SYNC_INTERVAL_MS = 30 * 60 * 1000;
+const SYNC_INTERVAL_MS = 60 * 60 * 1000;
 const syncTimer = setInterval(() => {
     if (shuttingDown || syncProc) return;
     syncProc = spawn('php', [path.join(ROOT, 'artisan'), 'kpi:sync', '--days=2'], {

@@ -39,8 +39,8 @@ return [
         'shop_id' => env('POS_SHOP_ID'),
         'herbal_api_key' => env('POS_HERBAL_API_KEY'),
         'herbal_shop_id' => env('POS_HERBAL_SHOP_ID'),
-        // Status codes excluded from sales (6 = canceled, 7 = deleted)
-        'excluded_statuses' => [6, 7],
+        // Status codes excluded from sales (7 = deleted/trash; 6 = canceled is included in Total POS Orders)
+        'excluded_statuses' => [7],
     ],
 
     // Attribution windows (hours) — proposals from the requirements brief.
