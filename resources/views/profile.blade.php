@@ -1,4 +1,8 @@
-@extends('layouts.app', ['title' => 'My Profile · Botcake KPI'])
+@extends('layouts.app', ['title' => 'My Profile · KGOLD AUTOMATION TEAM KPI'])
+
+@php
+    $profilePages = $me->isAdmin() ? $allPages : $me->pages;
+@endphp
 
 @section('content')
     <div>
@@ -6,7 +10,7 @@
         <p class="text-xs text-muted">Update your name, email, or optionally change your password</p>
     </div>
 
-    <div class="grid lg:grid-cols-12 gap-5">
+    <div class="grid lg:grid-cols-12 gap-5 items-start">
         {{-- Profile & Optional Password Form --}}
         <section class="card lg:col-span-7 overflow-hidden">
             <div class="card-head">
@@ -62,40 +66,64 @@
             </form>
         </section>
 
-        {{-- Assigned Pages Summary --}}
-        <section class="card lg:col-span-5 overflow-hidden flex flex-col">
+        {{-- Assigned Pages Summary (Paginated + Searchable so it matches Left Card height!) --}}
+        <section id="profile-pages-panel" class="card lg:col-span-5 overflow-hidden flex flex-col">
             <div class="card-head">
                 <div>
-                    <h2 class="card-title"><x-icon name="layers" class="size-4 text-primary"/> My Pages Access</h2>
-                    <p class="card-sub">Role: <b>{{ ucfirst($me->role) }}</b></p>
+                    <h2 class="card-title">
+                        <x-icon name="layers" class="size-4 text-primary"/> My Pages Access
+                        <span class="pill bg-primary-soft text-primary num">{{ $profilePages->count() }}</span>
+                    </h2>
+                    <p class="card-sub">
+                        Role: <b>{{ ucfirst($me->role) }}</b>
+                        @if ($me->isAdmin()) · Full access to all active pages @endif
+                    </p>
                 </div>
-            </div>
-            <div class="p-6 flex-1 space-y-2.5">
-                @if ($me->isAdmin())
-                    <p class="text-xs text-muted mb-3">As an <b>Admin</b>, your account automatically has access to all active pages ({{ $allPages->count() }}):</p>
-                    @foreach ($allPages as $p)
-                        <div class="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 border border-line">
-                            <x-page-avatar :id="$p->fb_page_id" :name="$p->name" size="size-7 !rounded-lg"/>
-                            <div class="min-w-0">
-                                <div class="text-xs font-semibold text-ink truncate">{{ $p->name }}</div>
-                                <div class="font-mono text-[10px] text-muted">{{ $p->fb_page_id }}</div>
-                            </div>
-                        </div>
-                    @endforeach
-                @elseif ($me->pages->isEmpty())
-                    <div class="p-6 text-center text-xs text-muted">No pages have been assigned to your account yet. Ask an Admin to assign your dedicated pages in <b>Accounts</b>.</div>
-                @else
-                    @foreach ($me->pages as $p)
-                        <div class="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 border border-line">
-                            <x-page-avatar :id="$p->fb_page_id" :name="$p->name" size="size-7 !rounded-lg"/>
-                            <div class="min-w-0">
-                                <div class="text-xs font-semibold text-ink truncate">{{ $p->name }}</div>
-                                <div class="font-mono text-[10px] text-muted">{{ $p->fb_page_id }}</div>
-                            </div>
-                        </div>
-                    @endforeach
+
+                @if ($profilePages->count() > 5)
+                    <div class="relative">
+                        <x-icon name="search" class="size-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"/>
+                        <input id="prof-pages-search" type="search" placeholder="Search page…" aria-label="Search my pages" class="search-field w-40">
+                    </div>
                 @endif
             </div>
+
+            <div class="p-4 flex-1 space-y-2">
+                @if ($profilePages->isEmpty())
+                    <div class="p-6 text-center text-xs text-muted">No pages have been assigned to your account yet. Ask an Admin to assign your dedicated pages in <b>Accounts</b>.</div>
+                @else
+                    <div id="prof-pages-list" class="space-y-2">
+                        @foreach ($profilePages as $p)
+                            <a href="{{ route('dashboard', ['page' => $p->fb_page_id]) }}"
+                               data-prof-page-row
+                               data-search="{{ strtolower($p->name.' '.$p->fb_page_id.' '.($p->team ?? '').' '.($p->product ?? '')) }}"
+                               class="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-slate-50/80 border border-line hover:border-primary/40 hover:bg-primary-soft/25 transition-colors cursor-pointer group">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <x-page-avatar :id="$p->fb_page_id" :name="$p->name" size="size-7 !rounded-lg"/>
+                                    <div class="min-w-0">
+                                        <div class="text-xs font-semibold text-ink group-hover:text-primary truncate">{{ $p->name }}</div>
+                                        <div class="font-mono text-[10px] text-muted">{{ $p->fb_page_id }}</div>
+                                    </div>
+                                </div>
+                                @if (!empty($p->team))
+                                    <span class="pill bg-white border border-line text-muted shrink-0">{{ $p->team }}</span>
+                                @endif
+                            </a>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+
+            @if ($profilePages->count() > 6)
+                <div class="px-5 py-2.5 border-t border-line bg-slate-50/50 flex items-center justify-between text-xs text-muted">
+                    <span id="prof-pages-range" class="num text-[11px]">1–6 of {{ $profilePages->count() }}</span>
+                    <div class="flex items-center gap-1.5">
+                        <button type="button" id="prof-pages-prev" class="px-2.5 py-1 rounded-lg border border-line bg-white text-ink font-medium hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none cursor-pointer">‹ Prev</button>
+                        <span id="prof-pages-ind" class="num px-1.5 font-semibold text-ink">1 / {{ ceil($profilePages->count() / 6) }}</span>
+                        <button type="button" id="prof-pages-next" class="px-2.5 py-1 rounded-lg border border-line bg-white text-ink font-medium hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none cursor-pointer">Next ›</button>
+                    </div>
+                </div>
+            @endif
         </section>
     </div>
 @endsection

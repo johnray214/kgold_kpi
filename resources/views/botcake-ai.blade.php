@@ -9,10 +9,18 @@
 @endphp
 
 @section('content')
+    @php
+        $dateBadge = $from === $to
+            ? ($from === now(config('kpi.timezone'))->toDateString() ? 'Today · '.\Illuminate\Support\Carbon::parse($from)->format('M j, Y') : \Illuminate\Support\Carbon::parse($from)->format('M j, Y'))
+            : \Illuminate\Support\Carbon::parse($from)->format('M j').' – '.\Illuminate\Support\Carbon::parse($to)->format('M j, Y');
+    @endphp
     <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
-            <h1 class="text-lg font-bold tracking-tight text-ink">AI Botcake Performance</h1>
-            <p class="text-xs text-muted">Verified POS orders closed directly by BotcakeAI vs handed off to human agents</p>
+            <div class="flex items-center gap-2">
+                <h1 class="text-lg font-bold tracking-tight text-ink">AI Botcake Performance</h1>
+                <span class="pill bg-primary-soft text-primary num">{{ $dateBadge }}</span>
+            </div>
+            <p class="text-xs text-muted">Verified POS orders on the selected date closed directly by BotcakeAI vs handed off to human agents</p>
         </div>
     </div>
 
@@ -86,7 +94,7 @@
                 <input type="search" data-table-search="ai-orders-tbl" placeholder="Search customer, phone, page…" aria-label="Search AI orders" class="search-field w-56">
             </div>
         </div>
-        <div class="overflow-x-auto max-h-[60vh]">
+        <div class="overflow-x-auto">
             <table id="ai-orders-tbl" data-sortable class="tbl">
                 <thead>
                     <tr>
@@ -136,5 +144,6 @@
                 </tbody>
             </table>
         </div>
+        <x-table-pager target="ai-orders-tbl" :perPage="10"/>
     </section>
 @endsection

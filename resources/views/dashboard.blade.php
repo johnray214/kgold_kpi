@@ -59,7 +59,7 @@
                         <x-page-avatar :id="$hp->fb_page_id" :name="$hp->name" size="size-6 !rounded-full !ring-2 !ring-surface !text-[9px]"/>
                     @endforeach
                 </div>
-                <span class="font-semibold text-ink">All {{ $pages->count() }} Brusko Capsule Pages</span>
+                <span class="font-semibold text-ink">All {{ $pages->count() }} {{ !empty($product) ? $product : 'Active' }} Pages</span>
             @elseif ($currentPage)
                 <x-page-avatar :id="$currentPage->fb_page_id" :name="$currentPage->name" size="size-6 !rounded-md !text-[9px]"/>
                 <span class="font-semibold text-ink">{{ $currentPage->name }}</span>

@@ -10,10 +10,20 @@
 @endphp
 
 @section('content')
+    @php
+        $isSingleToday = $from === $to && $from === now(config('kpi.timezone'))->toDateString();
+        $rangeShort = $isSingleToday ? 'Today' : 'Selected Date';
+        $dateBadge = $from === $to
+            ? ($isSingleToday ? 'Today · '.\Illuminate\Support\Carbon::parse($from)->format('M j, Y') : \Illuminate\Support\Carbon::parse($from)->format('M j, Y'))
+            : \Illuminate\Support\Carbon::parse($from)->format('M j').' – '.\Illuminate\Support\Carbon::parse($to)->format('M j, Y');
+    @endphp
     <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
-            <h1 class="text-lg font-bold tracking-tight text-ink">Sequences & Funnels</h1>
-            <p class="text-xs text-muted">Module 2 · Step retention funnels, biggest drop-off points, and 48-hour POS sales attribution</p>
+            <div class="flex items-center gap-2">
+                <h1 class="text-lg font-bold tracking-tight text-ink">Sequences & Funnels</h1>
+                <span class="pill bg-primary-soft text-primary num">{{ $dateBadge }}</span>
+            </div>
+            <p class="text-xs text-muted">Orders, Sales, Assisted, and Range columns reflect <b>{{ $rangeShort }}</b> · gray "(All-Time)" columns show lifetime Botcake funnel retention</p>
         </div>
         <a href="{{ route('orders', $q(['source_type' => 'sequence', 'valid' => 1])) }}" class="btn-ghost">
             View Sequence Orders <x-icon name="arrow-up-right" class="size-3.5"/>
@@ -67,14 +77,14 @@
                 <thead>
                     <tr>
                         <th>Sequence</th>
-                        <th>Entered (Range)</th>
-                        <th>Phone (Range)</th>
-                        <th>Orders</th>
-                        <th>Sales</th>
-                        <th>Assisted</th>
-                        <th>Entered (All)</th>
-                        <th>Completed (All)</th>
-                        <th>Phone (All)</th>
+                        <th>Entered ({{ $rangeShort }})</th>
+                        <th>Phone ({{ $rangeShort }})</th>
+                        <th>Orders ({{ $rangeShort }})</th>
+                        <th>Sales ({{ $rangeShort }})</th>
+                        <th>Assisted ({{ $rangeShort }})</th>
+                        <th>Entered (All-Time)</th>
+                        <th>Completed (All-Time)</th>
+                        <th>Phone (All-Time)</th>
                         <th class="!text-left">Biggest Drop-off</th>
                     </tr>
                 </thead>
@@ -170,5 +180,6 @@
                 @endforelse
             </table>
         </div>
+        <x-table-pager target="seq-table" :perPage="10"/>
     </section>
 @endsection

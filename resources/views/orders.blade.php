@@ -67,13 +67,10 @@
                     <x-icon name="search" class="size-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"/>
                     <input type="search" data-table-search="orders-table" placeholder="Search name, phone, order #…" aria-label="Search orders" class="search-field w-56">
                 </div>
-                <a href="{{ route('export.orders', $baseQ + $filters) }}" class="btn-ghost !min-h-[32px] !px-2.5 !text-xs">
-                    <x-icon name="download" class="size-3.5"/> CSV
-                </a>
             </div>
         </div>
 
-        <div class="overflow-x-auto max-h-[72vh]">
+        <div class="overflow-x-auto">
             <table id="orders-table" data-sortable class="tbl">
                 <thead>
                     <tr>
@@ -139,5 +136,6 @@
                 </tbody>
             </table>
         </div>
+        <x-table-pager target="orders-table" :perPage="15"/>
     </section>
 @endsection

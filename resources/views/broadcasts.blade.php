@@ -18,10 +18,18 @@
 @endphp
 
 @section('content')
+    @php
+        $dateBadge = $from === $to
+            ? ($from === now(config('kpi.timezone'))->toDateString() ? 'Today · '.\Illuminate\Support\Carbon::parse($from)->format('M j, Y') : \Illuminate\Support\Carbon::parse($from)->format('M j, Y'))
+            : \Illuminate\Support\Carbon::parse($from)->format('M j').' – '.\Illuminate\Support\Carbon::parse($to)->format('M j, Y');
+    @endphp
     <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
-            <h1 class="text-lg font-bold tracking-tight text-ink">Utility Broadcasts</h1>
-            <p class="text-xs text-muted">Filter by date, product, team & page above · click any broadcast row to inspect full Botcake delivery stats & exact Meta failure reasons</p>
+            <div class="flex items-center gap-2">
+                <h1 class="text-lg font-bold tracking-tight text-ink">Utility Broadcasts</h1>
+                <span class="pill bg-primary-soft text-primary num">{{ $dateBadge }}</span>
+            </div>
+            <p class="text-xs text-muted">Showing broadcasts sent on the selected date · click any broadcast row to inspect full Botcake delivery stats & exact Meta failure reasons</p>
         </div>
     </div>
 
@@ -78,7 +86,7 @@
             </div>
         </div>
 
-        <div class="overflow-x-auto max-h-[68vh]">
+        <div class="overflow-x-auto">
             <table id="bc-table" data-sortable data-active-segment="all" class="tbl">
                 <thead>
                     <tr>
@@ -220,6 +228,7 @@
                 </tbody>
             </table>
         </div>
+        <x-table-pager target="bc-table" :perPage="12"/>
     </section>
 
     {{-- Botcake-Style Slide-Over Broadcast Inspector Drawer --}}

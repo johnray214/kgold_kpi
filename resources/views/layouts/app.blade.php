@@ -23,6 +23,27 @@
         $missingTokenCount = isset($pages) ? $pages->filter(fn ($p) => isset($p->has_botcake) ? (! $p->has_botcake || ! $p->has_pancake) : (empty($p->botcake_token) || empty($p->pancake_token)))->count() : 0;
         $selectedPageModel = isset($pages) && $pageId !== 'all' ? $pages->firstWhere('fb_page_id', (string) $pageId) : null;
         $userInitials = $authUser ? collect(preg_split('/\s+/', trim($authUser->name)))->filter()->take(2)->map(fn ($w) => mb_strtoupper(mb_substr($w, 0, 1)))->implode('') : 'AD';
+        $unansweredInboxBadge = 0;
+        if ($authUser) {
+            $badgeCacheKey = $isAdmin ? 'kpi:inbox_badge' : "kpi:inbox_badge:{$authUser->id}";
+            $unansweredInboxBadge = \Illuminate\Support\Facades\Cache::remember($badgeCacheKey, 90, function () use ($authUser, $isAdmin) {
+                if (! \Illuminate\Support\Facades\Schema::hasTable('inbox_conversations')) {
+                    return 0;
+                }
+                $q = \App\Models\InboxConversation::where('last_sender_type', 'customer')
+                    ->where('has_order_today', false)
+                    ->where('last_message_at', '>=', now()->subHours(48)->utc());
+                if (! $isAdmin) {
+                    $pids = $authUser->pages()->pluck('pages.fb_page_id')->map(fn ($id) => (string) $id)->all();
+                    if (empty($pids)) {
+                        return 0;
+                    }
+                    $q->whereIn('page_id', $pids);
+                }
+
+                return (int) $q->count();
+            });
+        }
     @endphp
 
     {{-- Top gliding navigation progress bar --}}
@@ -65,7 +86,7 @@
                     </nav>
                 </div>
 
-                {{-- 2. ANALYTICS -> Broadcast, Sequence, Botcake AI --}}
+                {{-- 2. ANALYTICS -> Broadcast, Sequence, Botcake AI, Inbox --}}
                 <div>
                     <div class="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">Analytics</div>
                     <nav class="space-y-0.5">
@@ -81,6 +102,17 @@
                                 @if ($active)<span class="size-1.5 rounded-full bg-primary"></span>@endif
                             </a>
                         @endforeach
+
+                        @php $inboxActive = request()->routeIs('inbox'); @endphp
+                        <a href="{{ route('inbox', $navQuery) }}" class="{{ $inboxActive ? 'nav-item-active' : 'nav-item' }}">
+                            <x-icon name="inbox" class="size-[17px] shrink-0 {{ $inboxActive ? 'text-primary' : 'text-slate-400' }}"/>
+                            <span class="flex-1 truncate">Inbox Monitor</span>
+                            @if ($unansweredInboxBadge > 0)
+                                <span class="pill !px-1.5 !py-0 bg-red-100 text-bad num">{{ $unansweredInboxBadge }}</span>
+                            @elseif ($inboxActive)
+                                <span class="size-1.5 rounded-full bg-primary"></span>
+                            @endif
+                        </a>
                     </nav>
                 </div>
 
@@ -97,10 +129,17 @@
                     </nav>
                 </div>
 
-                {{-- 4. WORKSPACE -> Accounts, Profile, Pages & Tokens --}}
+                {{-- 4. WORKSPACE -> EOD Report, Accounts, Profile, Pages & Tokens --}}
                 <div>
                     <div class="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">Workspace</div>
                     <nav class="space-y-0.5">
+                        @php $eodActive = request()->routeIs('eod'); @endphp
+                        <a href="{{ route('eod') }}" class="{{ $eodActive ? 'nav-item-active' : 'nav-item' }}">
+                            <x-icon name="file-text" class="size-[17px] shrink-0 {{ $eodActive ? 'text-primary' : 'text-slate-400' }}"/>
+                            <span class="flex-1 truncate">EOD Report</span>
+                            @if ($eodActive)<span class="size-1.5 rounded-full bg-primary"></span>@endif
+                        </a>
+
                         @if ($isAdmin)
                             @php $accActive = request()->routeIs('accounts'); @endphp
                             <a href="{{ route('accounts', $navQuery) }}" class="{{ $accActive ? 'nav-item-active' : 'nav-item' }}">

@@ -3,6 +3,8 @@
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EodController;
+use App\Http\Controllers\InboxController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -15,7 +17,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/broadcasts', [DashboardController::class, 'broadcastsPage'])->name('broadcasts');
     Route::get('/sequences', [DashboardController::class, 'sequencesPage'])->name('sequences');
     Route::get('/botcake-ai', [DashboardController::class, 'botcakeAiPage'])->name('botcake.ai');
+    Route::get('/inbox', [InboxController::class, 'index'])->name('inbox');
+    Route::post('/inbox/sync', [InboxController::class, 'syncNow'])->name('inbox.sync');
     Route::get('/orders', [DashboardController::class, 'orders'])->name('orders');
+    Route::get('/eod', [EodController::class, 'show'])->name('eod');
+    Route::post('/eod/submit', [EodController::class, 'submitMemberEod'])->name('eod.submit');
+    Route::post('/eod/pdf', [EodController::class, 'downloadPdf'])->name('eod.pdf');
+    Route::post('/eod/admin-pdf', [EodController::class, 'downloadAdminPdf'])->name('eod.admin.pdf');
 
     Route::get('/accounts', [AccountController::class, 'index'])->name('accounts');
     Route::post('/accounts', [AccountController::class, 'store'])->name('accounts.store');

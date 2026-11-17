@@ -73,3 +73,11 @@
     html { scroll-behavior: auto; }
     * { transition: none !important; animation: none !important; }
 }
+
+@media print {
+    @page { size: A4 portrait; margin: 12mm 14mm; }
+    body { background: #ffffff !important; color: #0f172a !important; }
+    #app-sidebar, #sidebar-backdrop, #top-nav-progress, header, .no-print, #confirm-delete-modal { display: none !important; }
+    main { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+    #eod-paper { border: none !important; box-shadow: none !important; padding: 0 !important; border-radius: 0 !important; }
+}

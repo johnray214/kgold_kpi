@@ -204,8 +204,8 @@ class DashboardController extends Controller
             'sales' => $report->salesBySource(),
             'ai' => $report->botcakeAi(),
             'timeline' => $report->timeline(),
-            'aiOrders' => $report->orderList(['source_type' => 'botcake_ai', 'valid' => 1], 50),
-            'agentOrders' => $report->orderList(['source_type' => 'agent', 'valid' => 1], 25),
+            'aiOrders' => $report->orderList(['source_type' => 'botcake_ai', 'valid' => 1], 250),
+            'agentOrders' => $report->orderList(['source_type' => 'agent', 'valid' => 1], 50),
         ]);
 
         return view('botcake-ai', $shared + $payload);

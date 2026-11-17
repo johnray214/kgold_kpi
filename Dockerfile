@@ -36,7 +36,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     libpq-dev \
     libzip-dev \
+    libpng-dev \
+    libjpeg62-turbo-dev \
+    libfreetype6-dev \
     unzip \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j"$(nproc)" \
         pdo_pgsql \
         pgsql \
@@ -44,6 +48,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         bcmath \
         pcntl \
         zip \
+        gd \
     && rm -rf /var/lib/apt/lists/* /etc/nginx/sites-enabled/default
 
 # Production PHP + OPcache tuning

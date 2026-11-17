@@ -35,6 +35,14 @@ class PosSync
                 ->implode(', ');
 
             $status = isset($o['status']) ? (int) $o['status'] : null;
+            $total = (float) ($o['total_price_after_sub_discount'] ?? 0);
+            if ($total <= 0) {
+                $total = (float) ($o['total_price'] ?? ($o['cod'] ?? ($o['money_to_collect'] ?? 0)));
+            }
+
+            // Exclude canceled/deleted statuses AND empty ₱0 auto-created phone-lead draft shells (no items & ₱0)
+            $isEmptyDraft = $total <= 0 && trim($items) === '';
+            $isValid = ! in_array($status, $excluded, true) && ! $isEmptyDraft;
 
             $order = PosOrder::firstOrNew(['id' => $o['id']]);
             $order->fill([
@@ -44,10 +52,10 @@ class PosSync
                 'psid' => $psid,
                 'phone' => $o['bill_phone_number'] ?? null,
                 'customer_name' => $o['bill_full_name'] ?? ($o['customer']['name'] ?? null),
-                'total' => (float) ($o['total_price_after_sub_discount'] ?? $o['total_price'] ?? 0),
+                'total' => $total,
                 'status' => $status,
-                'status_name' => $o['status_name'] ?? null,
-                'is_valid' => ! in_array($status, $excluded, true),
+                'status_name' => $isEmptyDraft ? 'draft (no items)' : ($o['status_name'] ?? null),
+                'is_valid' => $isValid,
                 'ordered_at' => Carbon::parse($o['inserted_at'], 'UTC'),
                 'items_summary' => mb_substr($items, 0, 1000),
                 'note' => $o['note'] ?? null,

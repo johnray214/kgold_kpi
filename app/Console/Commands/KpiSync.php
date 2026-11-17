@@ -7,6 +7,7 @@ use App\Models\PosOrder;
 use App\Models\SyncRun;
 use App\Services\Sync\Attributor;
 use App\Services\Sync\BotcakeSync;
+use App\Services\Sync\InboxSync;
 use App\Services\Sync\PosSync;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
@@ -17,7 +18,7 @@ class KpiSync extends Command
         {--days=2 : How many days back to pull (2 = yesterday & today)}
         {--from= : Backfill from this date (YYYY-MM-DD) — overrides --days and pulls older broadcasts too}
         {--page= : Optional single fb_page_id to sync}
-        {--only= : botcake|pos|attribute}
+        {--only= : botcake|pos|attribute|inbox}
         {--reattribute : Re-run attribution on orders that already have a source}';
 
     protected $description = 'Pull Botcake, Pancake and POS data and attribute POS orders to a source';
@@ -98,8 +99,17 @@ class KpiSync extends Command
             }
         }
 
+        if (! $only || $only === 'inbox') {
+            $this->step('inbox', function () use ($pages) {
+                $res = (new InboxSync)->syncPages($pages);
+
+                return "{$res['pages_synced']} pages, {$res['conversations_upserted']} chats ({$res['unanswered']} unanswered, {$res['human_replied']} manual)";
+            });
+        }
+
         \Illuminate\Support\Facades\Cache::forever('kpi:ver', (string) time());
         \Illuminate\Support\Facades\Cache::forget('kpi:sync_meta');
+        \Illuminate\Support\Facades\Cache::forget('kpi:inbox_badge');
 
         return self::SUCCESS;
     }
