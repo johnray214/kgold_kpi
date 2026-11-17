@@ -8,7 +8,6 @@
         'page' => $pageId ?? null,
         'from' => $from ?? null,
         'to' => $to ?? null,
-        'window' => $windowMode ?? null,
     ], fn ($v) => $v !== null && $v !== '');
 
     $tabs = [
@@ -58,25 +57,8 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
-            {{-- Time Window Switcher --}}
-            <div class="inline-flex items-center rounded-xl bg-white p-1 border border-line text-xs shadow-2xs">
-                <a href="{{ route('inbox', array_merge($baseQ, ['tab' => $tab, 'window' => '48h'])) }}"
-                   @class(['px-2.5 py-1 rounded-lg cursor-pointer transition-colors', 'bg-primary text-white font-semibold' => $windowMode === '48h', 'text-muted hover:text-ink font-medium' => $windowMode !== '48h'])>
-                    Active (Last 48h)
-                </a>
-                <a href="{{ route('inbox', array_merge($baseQ, ['tab' => $tab, 'window' => 'today'])) }}"
-                   @class(['px-2.5 py-1 rounded-lg cursor-pointer transition-colors', 'bg-primary text-white font-semibold' => $windowMode === 'today', 'text-muted hover:text-ink font-medium' => $windowMode !== 'today'])>
-                    Today Only
-                </a>
-                <a href="{{ route('inbox', array_merge($baseQ, ['tab' => $tab, 'window' => 'date'])) }}"
-                   @class(['px-2.5 py-1 rounded-lg cursor-pointer transition-colors', 'bg-primary text-white font-semibold' => $windowMode === 'date', 'text-muted hover:text-ink font-medium' => $windowMode !== 'date'])>
-                    Date Filter
-                </a>
-            </div>
-
             <form method="POST" action="{{ route('inbox.sync') }}">
                 @csrf
-                <input type="hidden" name="page" value="{{ $pageId }}">
                 <button type="submit" data-loading-text="Pulling Live Chats…" class="btn-primary">
                     <x-icon name="refresh" class="size-3.5"/>
                     <span>Refresh Live Inbox</span>

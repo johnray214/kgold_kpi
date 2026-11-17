@@ -652,7 +652,7 @@ class EodController extends Controller
         $unanswered = InboxConversation::whereIn('page_id', $pageIds)
             ->where('last_sender_type', 'customer')
             ->where('has_order_today', false)
-            ->where('last_message_at', '>=', now()->subHours(48)->utc())
+            ->whereBetween('last_message_at', [$startUtc, $endUtc])
             ->count();
 
         $humanAssisted = InboxConversation::whereIn('page_id', $pageIds)

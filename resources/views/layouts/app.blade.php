@@ -23,26 +23,40 @@
         $missingTokenCount = isset($pages) ? $pages->filter(fn ($p) => isset($p->has_botcake) ? (! $p->has_botcake || ! $p->has_pancake) : (empty($p->botcake_token) || empty($p->pancake_token)))->count() : 0;
         $selectedPageModel = isset($pages) && $pageId !== 'all' ? $pages->firstWhere('fb_page_id', (string) $pageId) : null;
         $userInitials = $authUser ? collect(preg_split('/\s+/', trim($authUser->name)))->filter()->take(2)->map(fn ($w) => mb_strtoupper(mb_substr($w, 0, 1)))->implode('') : 'AD';
-        $unansweredInboxBadge = 0;
-        if ($authUser) {
-            $badgeCacheKey = $isAdmin ? 'kpi:inbox_badge' : "kpi:inbox_badge:{$authUser->id}";
-            $unansweredInboxBadge = \Illuminate\Support\Facades\Cache::remember($badgeCacheKey, 90, function () use ($authUser, $isAdmin) {
-                if (! \Illuminate\Support\Facades\Schema::hasTable('inbox_conversations')) {
-                    return 0;
-                }
-                $q = \App\Models\InboxConversation::where('last_sender_type', 'customer')
-                    ->where('has_order_today', false)
-                    ->where('last_message_at', '>=', now()->subHours(48)->utc());
-                if (! $isAdmin) {
-                    $pids = $authUser->pages()->pluck('pages.fb_page_id')->map(fn ($id) => (string) $id)->all();
-                    if (empty($pids)) {
+        if (! isset($unansweredInboxBadge)) {
+            $unansweredInboxBadge = 0;
+            if ($authUser) {
+                $scopedBadgePageIds = (isset($pageId) && $pageId !== 'all')
+                    ? [(string) $pageId]
+                    : (isset($pages)
+                        ? $pages->pluck('fb_page_id')->map(fn ($id) => (string) $id)->values()->all()
+                        : ($isAdmin ? [] : $authUser->pages()->where('pages.active', true)->pluck('pages.fb_page_id')->map(fn ($id) => (string) $id)->all()));
+                $bFrom = $from ?? $today;
+                $bTo = $to ?? $bFrom;
+                $badgeScopeKey = 'kpi:inbox_badge:' . md5(($isAdmin ? 'adm:' : "u{$authUser->id}:") . "{$bFrom}:{$bTo}:" . implode(',', $scopedBadgePageIds));
+                $unansweredInboxBadge = \Illuminate\Support\Facades\Cache::remember($badgeScopeKey, 20, function () use ($isAdmin, $scopedBadgePageIds, $bFrom, $bTo, $tz) {
+                    if (! \Illuminate\Support\Facades\Schema::hasTable('inbox_conversations')) {
                         return 0;
                     }
-                    $q->whereIn('page_id', $pids);
-                }
+                    try {
+                        $sUtc = \Illuminate\Support\Carbon::parse($bFrom, $tz)->startOfDay()->utc();
+                        $eUtc = \Illuminate\Support\Carbon::parse($bTo, $tz)->endOfDay()->utc();
+                    } catch (\Throwable) {
+                        $sUtc = now($tz)->startOfDay()->utc();
+                        $eUtc = now($tz)->endOfDay()->utc();
+                    }
+                    $q = \App\Models\InboxConversation::where('last_sender_type', 'customer')
+                        ->where('has_order_today', false)
+                        ->whereBetween('last_message_at', [$sUtc, $eUtc]);
+                    if (! empty($scopedBadgePageIds)) {
+                        $q->whereIn('page_id', $scopedBadgePageIds);
+                    } elseif (! $isAdmin) {
+                        return 0;
+                    }
 
-                return (int) $q->count();
-            });
+                    return (int) $q->count();
+                });
+            }
         }
     @endphp
 

@@ -84,24 +84,14 @@ class InboxController extends Controller
         }
 
         $tab = (string) $request->input('tab', 'unanswered_no_order');
-        $windowMode = (string) $request->input('window', ($from !== $todayStr || $to !== $todayStr) ? 'date' : '48h');
 
         $nowLocal = now($tz);
         $todayStartUtc = $nowLocal->copy()->startOfDay()->utc();
-        if ($windowMode === 'today') {
+        try {
+            $rangeStartUtc = Carbon::parse($from, $tz)->startOfDay()->utc();
+            $rangeEndUtc = Carbon::parse($to, $tz)->endOfDay()->utc();
+        } catch (\Throwable) {
             $rangeStartUtc = $todayStartUtc;
-            $rangeEndUtc = $nowLocal->copy()->endOfDay()->utc();
-        } elseif ($windowMode === 'date') {
-            try {
-                $rangeStartUtc = Carbon::parse($from, $tz)->startOfDay()->utc();
-                $rangeEndUtc = Carbon::parse($to, $tz)->endOfDay()->utc();
-            } catch (\Throwable) {
-                $rangeStartUtc = $nowLocal->copy()->subHours(48)->utc();
-                $rangeEndUtc = $nowLocal->copy()->endOfDay()->utc();
-            }
-        } else {
-            // Default 48h active queue so late-night unanswered inquiries are never missed
-            $rangeStartUtc = $nowLocal->copy()->subHours(48)->utc();
             $rangeEndUtc = $nowLocal->copy()->endOfDay()->utc();
         }
 
@@ -122,6 +112,15 @@ class InboxController extends Controller
         $unansweredByPage = collect();
 
         if (! empty($scopedPageIds) && Schema::hasTable('inbox_conversations')) {
+            // Auto-verify open 'customer' rows on browser reload (F5) if >= 15s since last live check
+            $lastVerified = (int) Cache::get('kpi:inbox_last_verified_ts', 0);
+            if ((time() - $lastVerified) >= 15) {
+                try {
+                    (new InboxSync)->quickVerifyScopedUnanswered($scopedPageIds);
+                } catch (\Throwable) {
+                }
+            }
+
             $baseRows = InboxConversation::whereIn('page_id', $scopedPageIds)
                 ->whereBetween('last_message_at', [$rangeStartUtc, $rangeEndUtc])
                 ->orderByDesc('last_message_at')
@@ -134,19 +133,13 @@ class InboxController extends Controller
             $humanAll = $baseRows->filter(fn ($r) => $r->last_sender_type === 'human_agent');
             $botNoOrder = $baseRows->filter(fn ($r) => in_array($r->last_sender_type, ['botcake_ai', 'bot'], true) && ! $r->has_order_today);
 
-            // Count today's human-assisted chats strictly from 12:00 AM today for EOD alignment
-            $humanTodayRows = InboxConversation::whereIn('page_id', $scopedPageIds)
-                ->where('last_sender_type', 'human_agent')
-                ->where('last_message_at', '>=', $todayStartUtc)
-                ->get(['id', 'has_order_today']);
-
             $stats = [
                 'unanswered_no_order' => $unansweredNoOrder->count(),
                 'unanswered_with_phone' => $unansweredNoOrder->where('has_phone', true)->count(),
                 'unread_unseen' => $unansweredNoOrder->where('seen', false)->count(),
                 'human_no_order' => $humanNoOrder->count(),
-                'human_today_all' => $humanTodayRows->count(),
-                'human_converted_today' => $humanTodayRows->where('has_order_today', true)->count(),
+                'human_today_all' => $humanAll->count(),
+                'human_converted_today' => $humanAll->where('has_order_today', true)->count(),
                 'unanswered_has_order' => $unansweredHasOrder->count(),
                 'bot_no_order' => $botNoOrder->count(),
                 'pages_with_unanswered' => $unansweredNoOrder->pluck('page_id')->unique()->count(),
@@ -196,11 +189,11 @@ class InboxController extends Controller
             'to' => $to,
             'dataSince' => $dataSince,
             'tab' => $tab,
-            'windowMode' => $windowMode,
             'stats' => $stats,
             'conversations' => $conversations,
             'unansweredByPage' => $unansweredByPage,
             'pageMeta' => $pageMeta,
+            'unansweredInboxBadge' => $stats['unanswered_no_order'],
         ]);
     }
 
@@ -214,9 +207,6 @@ class InboxController extends Controller
         if (! $isAdmin) {
             $assignedIds = $me->pages()->pluck('pages.id')->all();
             $query->whereIn('id', $assignedIds);
-        }
-        if ($request->filled('page') && $request->input('page') !== 'all') {
-            $query->where('fb_page_id', (string) $request->input('page'));
         }
 
         $targetPages = $query->orderBy('id')->get();
